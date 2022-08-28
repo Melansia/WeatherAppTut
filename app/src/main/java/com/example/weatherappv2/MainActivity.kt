@@ -5,6 +5,7 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import com.google.gson.Gson
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
             var connection: HttpURLConnection? = null
 
             try {
-                val url = URL(" ")
+                val url = URL("https://run.mocky.io/v3/054b6253-aca8-4042-aec8-0c628e8b3062")
                 connection = url.openConnection() as HttpURLConnection
                 connection.doInput = true
                 connection.doOutput = true
@@ -77,6 +78,14 @@ class MainActivity : AppCompatActivity() {
             cancelProgressDialog()
 
             Log.i("JSON RESPONSE RESULT", result?: "null")
+
+            val responseData = Gson().fromJson(result, ResponseData::class.java)
+            Log.i("City", "City Name: ${responseData.name}")
+            Log.i("Temp", "Temperature: ${responseData.main.temp}")
+            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
+            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
+            Log.i("Description", "Description: ${responseData.weather[0].description}")
+            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
         }
 
         private fun showProgressDialog() {
@@ -89,5 +98,4 @@ class MainActivity : AppCompatActivity() {
             customProgressDialog.dismiss()
         }
     }
-
 }

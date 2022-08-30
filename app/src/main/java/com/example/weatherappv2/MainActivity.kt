@@ -109,6 +109,15 @@ class MainActivity : AppCompatActivity() {
 
             val longitude = mLastLocation?.longitude
             Log.i("Current Longitude", "$longitude")
+            getLocationWeatherDetails()
+        }
+    }
+
+    private fun getLocationWeatherDetails() {
+        if (Constants.isNetworkAvailable(this@MainActivity)){
+            Toast.makeText(this@MainActivity, "You have connected to the internet. Now you can make an request", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this@MainActivity, "No internet connection available", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -191,15 +200,15 @@ class MainActivity : AppCompatActivity() {
             super.onPostExecute(result)
             cancelProgressDialog()
 
-            Log.i("JSON RESPONSE RESULT", result ?: "null")
-
-            val responseData = Gson().fromJson(result, ResponseData::class.java)
-            Log.i("City", "City Name: ${responseData.name}")
-            Log.i("Temp", "Temperature: ${responseData.main.temp}")
-            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
-            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
-            Log.i("Description", "Description: ${responseData.weather[0].description}")
-            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
+//            Log.i("JSON RESPONSE RESULT", result ?: "null")
+//
+//            val responseData = Gson().fromJson(result, ResponseData::class.java)
+//            Log.i("City", "City Name: ${responseData.name}")
+//            Log.i("Temp", "Temperature: ${responseData.main.temp}")
+//            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
+//            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
+//            Log.i("Description", "Description: ${responseData.weather[0].description}")
+//            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
         }
 
         private fun showProgressDialog() {

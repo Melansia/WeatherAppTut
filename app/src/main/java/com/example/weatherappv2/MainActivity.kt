@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.location.Location
 import android.location.LocationManager
-import android.location.LocationRequest
 import android.net.Uri
 import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
@@ -17,7 +16,6 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.getSystemService
 import com.example.weatherappv2.models.WeatherResponse
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -36,7 +34,6 @@ import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
-import java.util.jar.Manifest
 
 class MainActivity : AppCompatActivity() {
 
@@ -115,10 +112,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getLocationWeatherDetails() {
-        if (Constants.isNetworkAvailable(this@MainActivity)){
-            Toast.makeText(this@MainActivity, "You have connected to the internet. Now you can make an request", Toast.LENGTH_SHORT).show()
+        if (Constants.isNetworkAvailable(this@MainActivity)) {
+            Toast.makeText(
+                this@MainActivity,
+                "You have connected to the internet. Now you can make an request",
+                Toast.LENGTH_SHORT
+            ).show()
         } else {
-            Toast.makeText(this@MainActivity, "No internet connection available", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this@MainActivity,
+                "No internet connection available",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -202,7 +207,7 @@ class MainActivity : AppCompatActivity() {
             cancelProgressDialog()
 
             Log.i("JSON RESPONSE RESULT", result ?: "null")
-//
+
             val responseData = Gson().fromJson(result, WeatherResponse::class.java)
             Log.i("City", "City Name: ${responseData.name}")
             Log.i("Temp", "Temperature: ${responseData.main.temp}")

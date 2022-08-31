@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.example.weatherappv2
 
 import android.annotation.SuppressLint
@@ -19,7 +17,6 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import com.example.weatherappv2.models.WeatherResponse
-import com.example.weatherappv2.network.WeatherService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
@@ -30,8 +27,6 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
-import retrofit2.*
-import retrofit2.converter.gson.GsonConverterFactory
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -89,7 +84,7 @@ class MainActivity : AppCompatActivity() {
                 }).onSameThread().check()
         }
 
-//        CallAPILoginAsyncTask().execute()
+        CallAPILoginAsyncTask().execute()
     }
 
     @SuppressLint("MissingPermission")
@@ -112,54 +107,17 @@ class MainActivity : AppCompatActivity() {
 
             val longitude = mLastLocation?.longitude
             Log.i("Current Longitude", "$longitude")
-            if (longitude != null) {
-                if (latitude != null) {
-                    getLocationWeatherDetails(latitude, longitude)
-                }
-            }
+            getLocationWeatherDetails()
         }
     }
 
-    private fun getLocationWeatherDetails(latitude: Double, longitude: Double) {
+    private fun getLocationWeatherDetails() {
         if (Constants.isNetworkAvailable(this@MainActivity)) {
-            val retrofit: Retrofit = Retrofit.Builder().baseUrl(Constants.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create()).build()
-
-            val service: WeatherService =
-                retrofit.create<WeatherService>(WeatherService::class.java)
-
-            val listCall: Call<WeatherResponse> = service.getWeather(
-                latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID
-            )
-
-            listCall.enqueue(object : Callback<WeatherResponse> {
-                override fun onResponse(
-                    call: Call<WeatherResponse>,
-                    response: Response<WeatherResponse>
-                ) {
-                    if (response.isSuccessful) {
-                        val weatherList: WeatherResponse? = response.body()
-                        Log.i("Response Result", "$weatherList")
-                    } else {
-                        val rc = response.code()
-                        when (rc) {
-                            400 -> {
-                                Log.e("Error 400", "Bad Connection")
-                            }
-                            404 -> {
-                                Log.e("Error 404", "Not Found")
-                            }
-                            else -> {
-                                Log.e("Error ", "Generic Error")
-                            }
-                        }
-                    }
-                }
-
-                override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                        Log.e("Errorrrrr!!!", t.message.toString())
-                }
-            })
+            Toast.makeText(
+                this@MainActivity,
+                "You have connected to the internet. Now you can make an request",
+                Toast.LENGTH_SHORT
+            ).show()
         } else {
             Toast.makeText(
                 this@MainActivity,
@@ -193,80 +151,80 @@ class MainActivity : AppCompatActivity() {
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
-//    private inner class CallAPILoginAsyncTask() : AsyncTask<Any, Void, String>() {
-//
-//        private lateinit var customProgressDialog: Dialog
-//        override fun onPreExecute() {
-//            super.onPreExecute()
-//            showProgressDialog()
-//        }
+    private inner class CallAPILoginAsyncTask() : AsyncTask<Any, Void, String>() {
 
-//        override fun doInBackground(vararg p0: Any?): String {
-//            var result: String
-//            var connection: HttpURLConnection? = null
-//
-//            try {
-//                val url = URL("https://run.mocky.io/v3/054b6253-aca8-4042-aec8-0c628e8b3062")
-//                connection = url.openConnection() as HttpURLConnection
-//                connection.doInput = true
-//                connection.doOutput = true
-//
-//                val httpResult = connection.responseCode
-//                if (httpResult == HttpURLConnection.HTTP_OK) {
-//                    val inputStream = connection.inputStream
-//                    val reader = BufferedReader(InputStreamReader(inputStream))
-//                    val stringBuilder = StringBuilder()
-//                    var line: String?
-//                    try {
-//                        while (reader.readLine().also { line = it } != null) {
-//                            stringBuilder.append(line + "\n")
-//                        }
-//                    } catch (e: IOException) {
-//                        e.printStackTrace()
-//                    } finally {
-//                        try {
-//                            inputStream.close()
-//                        } catch (e: IOException) {
-//                            e.printStackTrace()
-//                        }
-//                    }
-//                    result = stringBuilder.toString()
-//                } else {
-//                    result = connection.responseMessage
-//                }
-//            } catch (e: SocketTimeoutException) {
-//                result = "Connection Timeout"
-//            } catch (e: Exception) {
-//                result = "Error: ${e.message}"
-//            } finally {
-//                connection?.disconnect()
-//            }
-//            return result
-//        }
+        private lateinit var customProgressDialog: Dialog
+        override fun onPreExecute() {
+            super.onPreExecute()
+            showProgressDialog()
+        }
 
-//        override fun onPostExecute(result: String?) {
-//            super.onPostExecute(result)
-//            cancelProgressDialog()
+        override fun doInBackground(vararg p0: Any?): String {
+            var result: String
+            var connection: HttpURLConnection? = null
 
-//            Log.i("JSON RESPONSE RESULT", result ?: "null")
-//
-//            val responseData = Gson().fromJson(result, WeatherResponse::class.java)
-//            Log.i("City", "City Name: ${responseData.name}")
-//            Log.i("Temp", "Temperature: ${responseData.main.temp}")
-//            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
-//            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
-//            Log.i("Description", "Description: ${responseData.weather[0].description}")
-//            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
-//        }
+            try {
+                val url = URL("https://run.mocky.io/v3/054b6253-aca8-4042-aec8-0c628e8b3062")
+                connection = url.openConnection() as HttpURLConnection
+                connection.doInput = true
+                connection.doOutput = true
+
+                val httpResult = connection.responseCode
+                if (httpResult == HttpURLConnection.HTTP_OK) {
+                    val inputStream = connection.inputStream
+                    val reader = BufferedReader(InputStreamReader(inputStream))
+                    val stringBuilder = StringBuilder()
+                    var line: String?
+                    try {
+                        while (reader.readLine().also { line = it } != null) {
+                            stringBuilder.append(line + "\n")
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    } finally {
+                        try {
+                            inputStream.close()
+                        } catch (e: IOException) {
+                            e.printStackTrace()
+                        }
+                    }
+                    result = stringBuilder.toString()
+                } else {
+                    result = connection.responseMessage
+                }
+            } catch (e: SocketTimeoutException) {
+                result = "Connection Timeout"
+            } catch (e: Exception) {
+                result = "Error: ${e.message}"
+            } finally {
+                connection?.disconnect()
+            }
+            return result
+        }
+
+        override fun onPostExecute(result: String?) {
+            super.onPostExecute(result)
+            cancelProgressDialog()
+
+            Log.i("JSON RESPONSE RESULT", result ?: "null")
+
+            val responseData = Gson().fromJson(result, WeatherResponse::class.java)
+            Log.i("City", "City Name: ${responseData.name}")
+            Log.i("Temp", "Temperature: ${responseData.main.temp}")
+            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
+            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
+            Log.i("Description", "Description: ${responseData.weather[0].description}")
+            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
+        }
 
         private fun showProgressDialog() {
-//            customProgressDialog = Dialog(this@MainActivity)
-//            customProgressDialog.setContentView(R.layout.dialog_custom_progress)
-//            customProgressDialog.show()
+            customProgressDialog = Dialog(this@MainActivity)
+            customProgressDialog.setContentView(R.layout.dialog_custom_progress)
+            customProgressDialog.show()
         }
 
         private fun cancelProgressDialog() {
-//            customProgressDialog.dismiss()
+            customProgressDialog.dismiss()
         }
-//    }
+    }
 }

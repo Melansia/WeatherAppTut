@@ -14,11 +14,6 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        Properties properties = new Properties();
-        properties.load(new FileInputStream(rootProject.file("local.properties")))
-
-        buildConfigField "String", "API_KEY", "\"${properties.getProperty("API_KEY")}\""
     }
 
     buildTypes {

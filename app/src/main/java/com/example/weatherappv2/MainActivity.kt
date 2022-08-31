@@ -9,39 +9,33 @@ import android.content.Intent
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
-import android.os.AsyncTask
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.example.weatherappv2.models.WeatherResponse
 import com.example.weatherappv2.network.WeatherService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.gson.Gson
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import retrofit2.Call
-import retrofit2.*
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.lang.Exception
-import java.net.HttpURLConnection
-import java.net.SocketTimeoutException
-import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
+    private var customProgressDialog: Dialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,8 +81,6 @@ class MainActivity : AppCompatActivity() {
 
                 }).onSameThread().check()
         }
-
-        CallAPILoginAsyncTask().execute()
     }
 
     @SuppressLint("MissingPermission")
@@ -131,12 +123,15 @@ class MainActivity : AppCompatActivity() {
                 latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID
             )
 
+            showProgressDialog()
+
             listCall.enqueue(object : Callback<WeatherResponse> {
                 override fun onResponse(
                     call: Call<WeatherResponse>,
                     response: Response<WeatherResponse>
                 ) {
                     if (response.isSuccessful) {
+                        hideProgressDialog()
                         val weatherList: WeatherResponse? = response.body()
                         Log.i("Response Result", "$weatherList")
                     } else {
@@ -157,6 +152,7 @@ class MainActivity : AppCompatActivity() {
 
                 override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
                     Log.e("Errorrrrr!!!", t.message.toString())
+                    hideProgressDialog()
                 }
             })
         }
@@ -202,80 +198,13 @@ class MainActivity : AppCompatActivity() {
                 || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
     }
 
-    private inner class CallAPILoginAsyncTask() : AsyncTask<Any, Void, String>() {
+    private fun showProgressDialog() {
+        customProgressDialog = Dialog(this@MainActivity)
+        customProgressDialog!!.setContentView(R.layout.dialog_custom_progress)
+        customProgressDialog!!.show()
+    }
 
-        private lateinit var customProgressDialog: Dialog
-        override fun onPreExecute() {
-            super.onPreExecute()
-            showProgressDialog()
-        }
-
-        override fun doInBackground(vararg p0: Any?): String {
-            var result: String
-            var connection: HttpURLConnection? = null
-
-            try {
-                val url = URL("https://run.mocky.io/v3/054b6253-aca8-4042-aec8-0c628e8b3062")
-                connection = url.openConnection() as HttpURLConnection
-                connection.doInput = true
-                connection.doOutput = true
-
-                val httpResult = connection.responseCode
-                if (httpResult == HttpURLConnection.HTTP_OK) {
-                    val inputStream = connection.inputStream
-                    val reader = BufferedReader(InputStreamReader(inputStream))
-                    val stringBuilder = StringBuilder()
-                    var line: String?
-                    try {
-                        while (reader.readLine().also { line = it } != null) {
-                            stringBuilder.append(line + "\n")
-                        }
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    } finally {
-                        try {
-                            inputStream.close()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
-                        }
-                    }
-                    result = stringBuilder.toString()
-                } else {
-                    result = connection.responseMessage
-                }
-            } catch (e: SocketTimeoutException) {
-                result = "Connection Timeout"
-            } catch (e: Exception) {
-                result = "Error: ${e.message}"
-            } finally {
-                connection?.disconnect()
-            }
-            return result
-        }
-
-        override fun onPostExecute(result: String?) {
-            super.onPostExecute(result)
-            cancelProgressDialog()
-
-            Log.i("JSON RESPONSE RESULT", result ?: "null")
-
-            val responseData = Gson().fromJson(result, WeatherResponse::class.java)
-            Log.i("City", "City Name: ${responseData.name}")
-            Log.i("Temp", "Temperature: ${responseData.main.temp}")
-            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
-            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
-            Log.i("Description", "Description: ${responseData.weather[0].description}")
-            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
-        }
-
-        private fun showProgressDialog() {
-            customProgressDialog = Dialog(this@MainActivity)
-            customProgressDialog.setContentView(R.layout.dialog_custom_progress)
-            customProgressDialog.show()
-        }
-
-        private fun cancelProgressDialog() {
-            customProgressDialog.dismiss()
-        }
+    private fun hideProgressDialog() {
+        customProgressDialog?.dismiss()
     }
 }

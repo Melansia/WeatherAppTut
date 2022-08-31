@@ -17,6 +17,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import com.example.weatherappv2.models.WeatherResponse
+import com.example.weatherappv2.network.WeatherService
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
@@ -27,6 +28,9 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import retrofit2.Call
+import retrofit2.*
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
@@ -107,7 +111,54 @@ class MainActivity : AppCompatActivity() {
 
             val longitude = mLastLocation?.longitude
             Log.i("Current Longitude", "$longitude")
-            getLocationWeatherDetails()
+            if (longitude != null) {
+                if (latitude != null) {
+                    getLocationWeatherDetails(latitude, longitude)
+                }
+            }
+        }
+    }
+
+    private fun getLocationWeatherDetails(latitude: Double, longitude: Double) {
+        if (Constants.isNetworkAvailable(this@MainActivity)) {
+            val retrofit: Retrofit = Retrofit.Builder().baseUrl(Constants.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create()).build()
+
+            val service: WeatherService =
+                retrofit.create<WeatherService>(WeatherService::class.java)
+
+            val listCall: Call<WeatherResponse> = service.getWeather(
+                latitude, longitude, Constants.METRIC_UNIT, Constants.APP_ID
+            )
+
+            listCall.enqueue(object : Callback<WeatherResponse> {
+                override fun onResponse(
+                    call: Call<WeatherResponse>,
+                    response: Response<WeatherResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val weatherList: WeatherResponse? = response.body()
+                        Log.i("Response Result", "$weatherList")
+                    } else {
+                        val rc = response.code()
+                        when (rc) {
+                            400 -> {
+                                Log.e("Error 400", "Bad Connection")
+                            }
+                            404 -> {
+                                Log.e("Error 404", "Not Found")
+                            }
+                            else -> {
+                                Log.e("Error ", "Generic Error")
+                            }
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                    Log.e("Errorrrrr!!!", t.message.toString())
+                }
+            })
         }
     }
 

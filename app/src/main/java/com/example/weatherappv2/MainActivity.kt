@@ -18,6 +18,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.getSystemService
+import com.example.weatherappv2.models.WeatherResponse
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
@@ -158,7 +159,7 @@ class MainActivity : AppCompatActivity() {
             var connection: HttpURLConnection? = null
 
             try {
-                val url = URL(" ")
+                val url = URL("https://run.mocky.io/v3/054b6253-aca8-4042-aec8-0c628e8b3062")
                 connection = url.openConnection() as HttpURLConnection
                 connection.doInput = true
                 connection.doOutput = true
@@ -200,15 +201,15 @@ class MainActivity : AppCompatActivity() {
             super.onPostExecute(result)
             cancelProgressDialog()
 
-//            Log.i("JSON RESPONSE RESULT", result ?: "null")
+            Log.i("JSON RESPONSE RESULT", result ?: "null")
 //
-//            val responseData = Gson().fromJson(result, ResponseData::class.java)
-//            Log.i("City", "City Name: ${responseData.name}")
-//            Log.i("Temp", "Temperature: ${responseData.main.temp}")
-//            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
-//            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
-//            Log.i("Description", "Description: ${responseData.weather[0].description}")
-//            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
+            val responseData = Gson().fromJson(result, WeatherResponse::class.java)
+            Log.i("City", "City Name: ${responseData.name}")
+            Log.i("Temp", "Temperature: ${responseData.main.temp}")
+            Log.i("Outside", "Feels like: ${responseData.main.feels_like}")
+            Log.i("Weather", "Weather: ${responseData.weather[0].main}")
+            Log.i("Description", "Description: ${responseData.weather[0].description}")
+            Log.i("Wind", "Wind Speed: ${responseData.wind.speed}")
         }
 
         private fun showProgressDialog() {

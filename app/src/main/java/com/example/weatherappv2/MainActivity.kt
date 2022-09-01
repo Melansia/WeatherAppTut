@@ -9,11 +9,15 @@ import android.content.Intent
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.weatherappv2.models.WeatherResponse
 import com.example.weatherappv2.network.WeatherService
@@ -37,9 +41,61 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
     private var customProgressDialog: Dialog? = null
 
+    private lateinit var ivWeather: ImageView
+    private lateinit var tvMainWeather: TextView
+    private lateinit var tvWeatherDescription: TextView
+
+    private lateinit var ivMinMax: ImageView
+    private lateinit var tvMin: TextView
+    private lateinit var tvMax: TextView
+
+    private lateinit var ivHumidity: ImageView
+    private lateinit var tvTemp: TextView
+    private lateinit var tvHumidity: TextView
+
+    private lateinit var ivWind: ImageView
+    private lateinit var tvWindSpeed: TextView
+    private lateinit var tvSpeedUnit: TextView
+
+    private lateinit var ivLocation: ImageView
+    private lateinit var tvName: TextView
+    private lateinit var tvCountry: TextView
+
+    private lateinit var ivSunrise: ImageView
+    private lateinit var tvSunriseTime: TextView
+
+    private lateinit var ivSunset: ImageView
+    private lateinit var tvSunsetTime: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        ivWeather = findViewById(R.id.ivWeather)
+        tvMainWeather = findViewById(R.id.tvMainWeather)
+        tvWeatherDescription = findViewById(R.id.tvWeatherDescription)
+
+        ivMinMax = findViewById(R.id.ivMinMax)
+        tvMin = findViewById(R.id.tvMin)
+        tvMax = findViewById(R.id.tvMax)
+
+        ivHumidity = findViewById(R.id.ivHumidity)
+        tvTemp = findViewById(R.id.tvTemp)
+        tvHumidity = findViewById(R.id.tvHumidity)
+
+        ivWind = findViewById(R.id.ivWind)
+        tvWindSpeed = findViewById(R.id.tvWindSpeed)
+        tvSpeedUnit = findViewById(R.id.tvSpeedUnit)
+
+        ivLocation = findViewById(R.id.ivLocation)
+        tvName = findViewById(R.id.tvName)
+        tvCountry = findViewById(R.id.tvCountry)
+
+        ivSunrise = findViewById(R.id.ivSunrise)
+        tvSunriseTime = findViewById(R.id.tvSunriseTime)
+
+        ivSunset = findViewById(R.id.ivSunset)
+        tvSunsetTime = findViewById(R.id.tvSunsetTime)
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this@MainActivity)
 
@@ -126,13 +182,18 @@ class MainActivity : AppCompatActivity() {
             showProgressDialog()
 
             listCall.enqueue(object : Callback<WeatherResponse> {
+                @RequiresApi(Build.VERSION_CODES.N)
+                @SuppressLint("SetTextI18n")
                 override fun onResponse(
                     call: Call<WeatherResponse>,
                     response: Response<WeatherResponse>
                 ) {
                     if (response.isSuccessful) {
                         hideProgressDialog()
-                        val weatherList: WeatherResponse? = response.body()
+
+                        val weatherList: WeatherResponse = response.body()!!
+                        setUpUI(weatherList)
+
                         Log.i("Response Result", "$weatherList")
                     } else {
                         val rc = response.code()
@@ -158,21 +219,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getLocationWeatherDetails() {
-        if (Constants.isNetworkAvailable(this@MainActivity)) {
-            Toast.makeText(
-                this@MainActivity,
-                "You have connected to the internet. Now you can make an request",
-                Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            Toast.makeText(
-                this@MainActivity,
-                "No internet connection available",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
+//    private fun getLocationWeatherDetails() {
+//        if (Constants.isNetworkAvailable(this@MainActivity)) {
+//            Toast.makeText(
+//                this@MainActivity,
+//                "You have connected to the internet. Now you can make an request",
+//                Toast.LENGTH_SHORT
+//            ).show()
+//        } else {
+//            Toast.makeText(
+//                this@MainActivity,
+//                "No internet connection available",
+//                Toast.LENGTH_SHORT
+//            ).show()
+//        }
+//    }
 
     private fun showRationalDialogForPermissions() {
         AlertDialog.Builder(this)
@@ -206,5 +267,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun hideProgressDialog() {
         customProgressDialog?.dismiss()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    @SuppressLint("SetTextI18n")
+    private fun setUpUI(weatherList: WeatherResponse) {
+        for(i in weatherList.weather.indices) {
+            Log.i("Weather Name", weatherList.weather.toString())
+
+            tvMainWeather.text = weatherList.weather[i].main
+            tvWeatherDescription.text = weatherList.weather[i].description
+
+            tvTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+
+        }
+    }
+
+    private fun getUnit(value: String): String {
+        Log.i("Unit", value)
+        var value = "°C"
+        if ("US" == value || "LR" == value || "MM" == value) {
+            value = "°F"
+        }
+        return value
     }
 }

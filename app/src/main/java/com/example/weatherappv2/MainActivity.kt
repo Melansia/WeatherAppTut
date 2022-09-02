@@ -294,6 +294,23 @@ class MainActivity : AppCompatActivity() {
             tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
             tvSunsetTime.text = unixTime(weatherList.sys.sunset)
 
+            when(weatherList.weather[i].icon) {
+                "01d" -> ivWeather.setImageResource(R.drawable.sunny)
+                "02d" -> ivWeather.setImageResource(R.drawable.cloud)
+                "03d" -> ivWeather.setImageResource(R.drawable.cloud)
+                "04d" -> ivWeather.setImageResource(R.drawable.cloud)
+                "04n" -> ivWeather.setImageResource(R.drawable.cloud)
+                "10d" -> ivWeather.setImageResource(R.drawable.rain)
+                "11d" -> ivWeather.setImageResource(R.drawable.storm)
+                "13d" -> ivWeather.setImageResource(R.drawable.snowflake)
+                "01n" -> ivWeather.setImageResource(R.drawable.cloud)
+                "02n" -> ivWeather.setImageResource(R.drawable.cloud)
+                "03n" -> ivWeather.setImageResource(R.drawable.cloud)
+                "10n" -> ivWeather.setImageResource(R.drawable.cloud)
+                "11n" -> ivWeather.setImageResource(R.drawable.rain)
+                "13n" -> ivWeather.setImageResource(R.drawable.snowflake)
+            }
+
         }
     }
 

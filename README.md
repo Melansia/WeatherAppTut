@@ -19,8 +19,8 @@ The following **required** functionality is completed:
 
 * [X] When the app starts user is asked for the location data access
 * [X] While data is loading user will see a custom loading dialog.
-* [ ] A refresh button in the menu
-* [ ] Storing data via SharedPreferences and preloading it
+* [X] A refresh button in the menu
+* [X] Storing data via SharedPreferences and preloading it
 
 ## Video Walk-through
 

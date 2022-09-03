@@ -14,6 +14,8 @@ import android.os.Bundle
 import android.os.Looper
 import android.provider.Settings
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -21,10 +23,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.weatherappv2.models.WeatherResponse
 import com.example.weatherappv2.network.WeatherService
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -68,6 +67,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var ivSunset: ImageView
     private lateinit var tvSunsetTime: TextView
+
+    private var latitude: Double = 0.0
+    // A global variable for Current Longitude
+    private var longitude: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,15 +140,32 @@ class MainActivity : AppCompatActivity() {
                         showRationalDialogForPermissions()
                     }
 
-                }).onSameThread().check()
+                }).onSameThread()
+                .check()
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                getLocationWeatherDetails()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+
     @SuppressLint("MissingPermission")
     private fun requestLocationData() {
-        val mLocationRequest = com.google.android.gms.location.LocationRequest()
+        val mLocationRequest = LocationRequest()
         mLocationRequest.priority =
-            com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+            LocationRequest.PRIORITY_HIGH_ACCURACY
 
         mFusedLocationClient.requestLocationUpdates(
             mLocationRequest, mLocationCallback, Looper.myLooper()
@@ -156,20 +176,16 @@ class MainActivity : AppCompatActivity() {
         override fun onLocationResult(p0: LocationResult) {
             super.onLocationResult(p0)
             val mLastLocation: Location? = p0.lastLocation
-            val latitude = mLastLocation?.latitude
+            latitude = mLastLocation!!.latitude
             Log.i("Current Latitude", "$latitude")
 
-            val longitude = mLastLocation?.longitude
+            longitude = mLastLocation!!.longitude
             Log.i("Current Longitude", "$longitude")
-            if (longitude != null) {
-                if (latitude != null) {
-                    getLocationWeatherDetails(latitude, longitude)
-                }
-            }
+                    getLocationWeatherDetails()
         }
     }
 
-    private fun getLocationWeatherDetails(latitude: Double, longitude: Double) {
+    private fun getLocationWeatherDetails() {
         if (Constants.isNetworkAvailable(this@MainActivity)) {
             val retrofit: Retrofit = Retrofit.Builder().baseUrl(Constants.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create()).build()
@@ -221,22 +237,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private fun getLocationWeatherDetails() {
-//        if (Constants.isNetworkAvailable(this@MainActivity)) {
-//            Toast.makeText(
-//                this@MainActivity,
-//                "You have connected to the internet. Now you can make an request",
-//                Toast.LENGTH_SHORT
-//            ).show()
-//        } else {
-//            Toast.makeText(
-//                this@MainActivity,
-//                "No internet connection available",
-//                Toast.LENGTH_SHORT
-//            ).show()
-//        }
-//    }
-
     private fun showRationalDialogForPermissions() {
         AlertDialog.Builder(this)
             .setMessage("It looks like you have turned off permission required for this feature. It can be enabled under Application Settings")
@@ -274,13 +274,14 @@ class MainActivity : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("SetTextI18n")
     private fun setUpUI(weatherList: WeatherResponse) {
-        for(i in weatherList.weather.indices) {
+        for (i in weatherList.weather.indices) {
             Log.i("Weather Name", weatherList.weather.toString())
 
             tvMainWeather.text = weatherList.weather[i].main
             tvWeatherDescription.text = weatherList.weather[i].description
 
-            tvTemp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+            tvTemp.text =
+                weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
             tvHumidity.text = weatherList.main.humidity.toString() + " per cent"
 
             tvMin.text = weatherList.main.temp_min.toString() + " min"
@@ -294,7 +295,7 @@ class MainActivity : AppCompatActivity() {
             tvSunriseTime.text = unixTime(weatherList.sys.sunrise)
             tvSunsetTime.text = unixTime(weatherList.sys.sunset)
 
-            when(weatherList.weather[i].icon) {
+            when (weatherList.weather[i].icon) {
                 "01d" -> ivWeather.setImageResource(R.drawable.sunny)
                 "02d" -> ivWeather.setImageResource(R.drawable.cloud)
                 "03d" -> ivWeather.setImageResource(R.drawable.cloud)
@@ -323,7 +324,7 @@ class MainActivity : AppCompatActivity() {
         return value
     }
 
-    private fun unixTime(timex: Long): String?{
+    private fun unixTime(timex: Long): String? {
         val date = Date(timex * 1000L)
         val sdf = SimpleDateFormat("HH:mm")
         sdf.timeZone = TimeZone.getDefault()

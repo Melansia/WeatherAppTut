@@ -75,6 +75,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var mSharedPreferences: SharedPreferences
 
+    private val TAG = "MainActivity"
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -186,7 +188,7 @@ class MainActivity : AppCompatActivity() {
             latitude = mLastLocation!!.latitude
             Log.i("Current Latitude", "$latitude")
 
-            longitude = mLastLocation!!.longitude
+            longitude = mLastLocation.longitude
             Log.i("Current Longitude", "$longitude")
             getLocationWeatherDetails()
         }
@@ -226,8 +228,7 @@ class MainActivity : AppCompatActivity() {
 
                         Log.i("Response Result", "$weatherList")
                     } else {
-                        val rc = response.code()
-                        when (rc) {
+                        when (response.code()) {
                             400 -> {
                                 Log.e("Error 400", "Bad Connection")
                             }
@@ -242,7 +243,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
-                    Log.e("Errorrrrr!!!", t.message.toString())
+                    Log.e(TAG , t.message.toString())
                     hideProgressDialog()
                 }
             })
@@ -335,15 +336,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun getUnit(value: String): String {
-        Log.i("Unit", value)
-        var value = "°C"
-        if ("US" == value || "LR" == value || "MM" == value) {
-            value = "°F"
+    private fun getUnit(unit: String): String {
+        Log.i("Unit", unit)
+        var unit = "°C"
+        if ("US" == unit || "LR" == unit || "MM" == unit) {
+            unit = "°F"
         }
-        return value
+        return unit
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun unixTime(timex: Long): String? {
         val date = Date(timex * 1000L)
         val sdf = SimpleDateFormat("HH:mm")
